@@ -1,0 +1,683 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+
+  @@map("subscription_status_type")
+}
+
+enum RoleType {
+  OWNER
+  ADMIN
+  MANAGER
+  ANALYST
+  VIEWER
+
+  @@map("role_type")
+}
+
+enum AuditStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+
+  @@map("audit_status_type")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+
+  @@map("task_status_type")
+}
+
+enum TriggerType {
+  CRAWLED
+  KEYWORD_DROPPED
+  CLICKS_DROPPED
+
+  @@map("trigger_type")
+}
+
+enum ActionType {
+  EMAIL
+  SLACK
+  WEBHOOK
+
+  @@map("action_type")
+}
+
+model Organization {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String         @db.VarChar(255)
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime       @default(now()) @map("updated_at") @db.Timestamptz
+  
+  users         User[]
+  teams         Team[]
+  projects      Project[]
+  invoices      Invoice[]
+  auditLogs     AuditLog[]
+  ga4Accounts   Ga4Account[]
+
+  @@map("organizations")
+}
+
+
+
+model Invoice {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String       @map("organization_id") @db.Uuid
+  stripeInvoiceId String       @unique @map("stripe_invoice_id") @db.VarChar(255)
+  amountDue       Int          @map("amount_due")
+  amountPaid      Int          @map("amount_paid")
+  pdfUrl          String?      @map("pdf_url") @db.VarChar(1024)
+  paidAt          DateTime?    @map("paid_at") @db.Timestamptz
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model Role {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        RoleType         @unique
+  description String?          @db.Text
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action      String           @unique @db.VarChar(100)
+  description String?          @db.Text
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+  
+  role         Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  email          String       @unique @db.VarChar(255)
+  passwordHash   String       @map("password_hash") @db.VarChar(255)
+  firstName      String       @map("first_name") @db.VarChar(100)
+  lastName       String       @map("last_name") @db.VarChar(100)
+  roleId         String       @map("role_id") @db.Uuid
+  isEmailVerified Boolean     @default(false) @map("is_email_verified")
+  emailVerificationToken String? @map("verification_token") @db.VarChar(255)
+  plan            String       @default("free_trial") @db.VarChar(50)
+  trialStartDate  DateTime?    @map("trial_start_date") @db.Timestamptz
+  trialEndDate    DateTime?    @map("trial_end_date") @db.Timestamptz
+  subscriptionStatus String   @default("trial") @map("subscription_status") @db.VarChar(50)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role         @relation(fields: [roleId], references: [id])
+  refreshTokens  UserRefreshToken[]
+  teamMembers    TeamMember[]
+  userProjects   UserProject[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model UserRefreshToken {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  tokenHash         String   @map("token_hash") @db.VarChar(255)
+  deviceFingerprint String?  @map("device_fingerprint") @db.VarChar(512)
+  ipAddress         String?  @map("ip_address") @db.VarChar(45)
+  expiresAt         DateTime @map("expires_at") @db.Timestamptz
+  isRevoked         Boolean  @default(false) @map("is_revoked")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_refresh_tokens")
+}
+
+model Team {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String       @db.VarChar(255)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        TeamMember[]
+  teamProjects   TeamProject[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  teamId String @map("team_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@map("team_members")
+}
+
+model Project {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String       @db.VarChar(255)
+  description    String?      @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teamProjects   TeamProject[]
+  userProjects   UserProject[]
+  websites       Website[]
+  competitors    Competitor[]
+  reports        Report[]
+  tasks          Task[]
+  automations    Automation[]
+  contentAssets  ContentAsset[]
+  cmsConnections CmsConnection[]
+
+  @@map("projects")
+}
+
+model TeamProject {
+  teamId    String @map("team_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  
+  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, projectId])
+  @@map("team_projects")
+}
+
+model UserProject {
+  userId    String @map("user_id") @db.Uuid
+  projectId String @map("project_id") @db.Uuid
+  
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([userId, projectId])
+  @@map("user_projects")
+}
+
+model Website {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId          String    @map("project_id") @db.Uuid
+  domain             String    @db.VarChar(255)
+  googleAccessToken  String?   @map("google_access_token") @db.VarChar(1024)
+  googleRefreshToken String?   @map("google_refresh_token") @db.VarChar(1024)
+  googleTokenExpiry  DateTime? @map("google_token_expiry") @db.Timestamptz
+  gscPropertyUrl     String?   @map("gsc_property_url") @db.VarChar(255)
+  gtmContainerId     String?   @map("gtm_container_id") @db.VarChar(50)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  seoAudits SeoAudit[]
+  keywords  Keyword[]
+  backlinks Backlink[]
+  gscData   SearchConsoleData[]
+  ga4Data   Ga4Data[]
+  contentAssets ContentAsset[]
+  ga4Properties Ga4Property[]
+
+  @@map("websites")
+}
+
+model Competitor {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  domain    String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  keywords  CompetitorKeyword[]
+
+  @@map("competitors")
+}
+
+model KeywordCluster {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(255)
+  siloName  String?  @map("silo_name") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  keywords  Keyword[]
+
+  @@map("keyword_clusters")
+}
+
+model Keyword {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  websiteId        String          @map("website_id") @db.Uuid
+  text             String          @db.VarChar(255)
+  volume           Int?            @default(0)
+  difficulty       Int?            @default(0)
+  cpc              Decimal?        @default(0.00) @db.Decimal(10, 2)
+  clusterId        String?         @map("cluster_id") @db.Uuid
+  intent           String?         @db.VarChar(50)
+  opportunityScore Int?            @default(0) @map("opportunity_score")
+  serpData         Json?           @map("serp_data")
+  seed             String?         @db.VarChar(255)
+  gscRank          Float?          @map("gsc_rank")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  
+  website          Website         @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  cluster          KeywordCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+  aiMentions       AiMention[]
+  aiCitations      AiCitation[]
+  geoScores        GeoScore[]
+  llmVisibilities  LlmVisibilityScore[]
+  positionSnapshots KeywordPositionSnapshot[]
+
+  @@map("keywords")
+}
+
+model KeywordPositionSnapshot {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keywordId String   @map("keyword_id") @db.Uuid
+  position  Float
+  date      DateTime @db.Date
+
+  keyword   Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([keywordId, date])
+  @@map("keyword_position_snapshots")
+}
+
+model CompetitorKeyword {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  competitorId String   @map("competitor_id") @db.Uuid
+  text         String   @db.VarChar(255)
+  rank         Int
+  volume       Int?     @default(0)
+  difficulty   Int?     @default(0)
+  checkedAt    DateTime @default(now()) @map("checked_at") @db.Timestamptz
+  
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@map("competitor_keywords")
+}
+
+model SeoAudit {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  websiteId    String      @map("website_id") @db.Uuid
+  status       AuditStatus @default(PENDING)
+  score        Int?
+  pagesCrawled Int?        @default(0) @map("pages_crawled")
+  startedAt    DateTime    @default(now()) @map("started_at") @db.Timestamptz
+  completedAt  DateTime?   @map("completed_at") @db.Timestamptz
+  
+  website      Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  pages        SeoAuditPage[]
+
+  @@map("seo_audits")
+}
+
+model SeoAuditPage {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auditId         String   @map("audit_id") @db.Uuid
+  url             String   @db.VarChar(2048)
+  statusCode      Int      @map("status_code")
+  title           String?  @db.VarChar(512)
+  metaDescription String?  @map("meta_description") @db.VarChar(1024)
+  h1              String?  @db.VarChar(512)
+  wordCount       Int?     @default(0) @map("word_count")
+  crawledAt       DateTime @default(now()) @map("crawled_at") @db.Timestamptz
+  issues          Json
+  
+  audit           SeoAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@map("seo_audit_pages")
+}
+
+model Backlink {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  websiteId       String   @map("website_id") @db.Uuid
+  sourceUrl       String   @map("source_url") @db.VarChar(2048)
+  targetUrl       String   @map("target_url") @db.VarChar(2048)
+  anchorText      String?  @map("anchor_text") @db.VarChar(1024)
+  domainAuthority Int?     @default(0) @map("domain_authority")
+  isNofollow      Boolean  @default(false) @map("is_nofollow")
+  discoveredAt    DateTime @default(now()) @map("discovered_at") @db.Timestamptz
+  
+  website         Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@map("backlinks")
+}
+
+model AiMention {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keywordId String   @map("keyword_id") @db.Uuid
+  engine    String   @db.VarChar(100)
+  mentioned Boolean  @default(false)
+  snippet   String?  @db.Text
+  checkedAt DateTime @default(now()) @map("checked_at") @db.Timestamptz
+  
+  keyword   Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@map("ai_mentions")
+}
+
+model AiCitation {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keywordId String   @map("keyword_id") @db.Uuid
+  engine    String   @db.VarChar(100)
+  url       String   @db.VarChar(2048)
+  rank      Int
+  checkedAt DateTime @default(now()) @map("checked_at") @db.Timestamptz
+  
+  keyword   Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@map("ai_citations")
+}
+
+model GeoScore {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keywordId        String   @map("keyword_id") @db.Uuid
+  engine           String   @db.VarChar(100)
+  overallScore     Int      @map("overall_score")
+  semanticDensity  Int      @map("semantic_density")
+  citationStrength Int      @map("citation_strength")
+  factualPrecision Int      @map("factual_precision")
+  informationGain  Int      @map("information_gain")
+  checkedAt        DateTime @default(now()) @map("checked_at") @db.Timestamptz
+  
+  keyword          Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@map("geo_scores")
+}
+
+model LlmVisibilityScore {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keywordId        String   @map("keyword_id") @db.Uuid
+  engine           String   @db.VarChar(100)
+  visibilityPercent Decimal  @map("visibility_percent") @db.Decimal(5, 2)
+  checkedAt        DateTime @default(now()) @map("checked_at") @db.Timestamptz
+  
+  keyword          Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@map("llm_visibility_scores")
+}
+
+model ContentAsset {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId           String   @map("project_id") @db.Uuid
+  websiteId           String?  @map("website_id") @db.Uuid
+  title               String   @db.VarChar(255)
+  url                 String?  @db.VarChar(2048)
+  body                String   @db.Text
+  keyword             String?  @db.VarChar(255)
+  contentType         String?  @map("content_type") @db.VarChar(100)
+  targetCountry       String?  @map("target_country") @db.VarChar(100)
+  targetLanguage      String?  @map("target_language") @db.VarChar(100)
+  seoTitle            String?  @map("seo_title") @db.VarChar(255)
+  metaTitle           String?  @map("meta_title") @db.VarChar(255)
+  metaDescription     String?  @map("meta_description") @db.Text
+  h1                  String?  @db.VarChar(255)
+  h2Structure         Json?    @map("h2_structure")
+  faqSection          Json?    @map("faq_section")
+  internalLinking     Json?    @map("internal_linking")
+  geoOptimizedContent String?  @map("geo_optimized_content") @db.Text
+  llmOptimizedContent String?  @map("llm_optimized_content") @db.Text
+  imageSuggestions     Json?    @map("image_suggestions")
+  publishUrl           String?  @map("publish_url") @db.VarChar(2048)
+  isDraft             Boolean  @default(true) @map("is_draft")
+  history             Json?
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  website             Website? @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+
+  @@map("content_assets")
+}
+
+model Report {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  name      String   @db.VarChar(255)
+  config    Json
+  pdfUrl    String?  @map("pdf_url") @db.VarChar(1024)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model Task {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String     @map("project_id") @db.Uuid
+  title       String     @db.VarChar(255)
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?  @map("due_date") @db.Timestamptz
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model Automation {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String      @map("project_id") @db.Uuid
+  name        String      @db.VarChar(255)
+  triggerType TriggerType @map("trigger_type")
+  actionType  ActionType  @map("action_type")
+  payload     Json
+  isActive    Boolean?    @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("automations")
+}
+
+model AuditLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  userId         String?  @map("user_id") @db.Uuid
+  action         String   @db.VarChar(100)
+  resourceType   String   @map("resource_type") @db.VarChar(100)
+  resourceId     String?  @map("resource_id") @db.Uuid
+  payloadBefore  Json?    @map("payload_before")
+  payloadAfter   Json?    @map("payload_after")
+  ipAddress      String   @map("ip_address") @db.VarChar(45)
+  userAgent      String?  @map("user_agent") @db.VarChar(512)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model SearchConsoleData {
+  id          String   @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  websiteId   String   @map("website_id") @db.Uuid
+  query       String   @db.VarChar(2048)
+  page        String   @db.VarChar(2048)
+  clicks      Int      @default(0)
+  impressions Int      @default(0)
+  ctr         Float
+  position    Float
+  date        DateTime @db.Date
+  
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@id([id, date])
+  @@map("google_search_console_data")
+}
+
+model Ga4Data {
+  id          String   @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  websiteId   String   @map("website_id") @db.Uuid
+  pagePath    String   @map("page_path") @db.VarChar(2048)
+  activeUsers Int      @default(0) @map("active_users")
+  sessions    Int      @default(0)
+  conversions Int      @default(0)
+  bounceRate  Float    @map("bounce_rate")
+  date        DateTime @db.Date
+  
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@id([id, date])
+  @@map("ga4_data")
+}
+
+model Ga4Account {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String       @map("organization_id") @db.Uuid
+  accountName        String       @map("account_name") @db.VarChar(255)
+  googleAccessToken  String?      @map("google_access_token") @db.VarChar(1024)
+  googleRefreshToken String?      @map("google_refresh_token") @db.VarChar(1024)
+  googleTokenExpiry  DateTime?    @map("google_token_expiry") @db.Timestamptz
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime     @default(now()) @map("updated_at") @db.Timestamptz
+  
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  properties         Ga4Property[]
+
+  @@map("ga4_accounts")
+}
+
+model Ga4Property {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId    String         @map("account_id") @db.Uuid
+  websiteId    String?        @map("website_id") @db.Uuid
+  propertyId   String         @map("property_id") @db.VarChar(100)
+  displayName  String         @map("display_name") @db.VarChar(255)
+  timeZone     String         @map("time_zone") @db.VarChar(100)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  
+  account      Ga4Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  website      Website?       @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+  metrics      Ga4Metric[]
+  events       Ga4Event[]
+  conversions  Ga4Conversion[]
+  syncLogs     Ga4SyncLog[]
+
+  @@map("ga4_properties")
+}
+
+model Ga4Metric {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId        String      @map("property_id") @db.Uuid
+  date              DateTime    @db.Date
+  activeUsers       Int         @default(0) @map("active_users")
+  newUsers          Int         @default(0) @map("new_users")
+  sessions          Int         @default(0)
+  engagedSessions   Int         @default(0) @map("engaged_sessions")
+  engagementRate    Float       @default(0.0) @map("engagement_rate")
+  avgEngagementTime Float       @default(0.0) @map("avg_engagement_time")
+  pageViews         Int         @default(0) @map("page_views")
+  conversions       Int         @default(0)
+  revenue           Float       @default(0.0)
+  deviceBreakdown   Json        @map("device_breakdown")
+  countryBreakdown  Json        @map("country_breakdown")
+  trafficSources    Json        @map("traffic_sources")
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  
+  property          Ga4Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@map("ga4_metrics")
+}
+
+model Ga4Event {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId String      @map("property_id") @db.Uuid
+  eventName  String      @map("event_name") @db.VarChar(255)
+  eventCount Int         @default(0) @map("event_count")
+  date       DateTime    @db.Date
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  
+  property   Ga4Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, eventName, date])
+  @@map("ga4_events")
+}
+
+model Ga4Conversion {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId       String      @map("property_id") @db.Uuid
+  conversionName   String      @map("conversion_name") @db.VarChar(255)
+  conversionsCount Int         @default(0) @map("conversions_count")
+  value            Float       @default(0.0)
+  date             DateTime    @db.Date
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  
+  property         Ga4Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, conversionName, date])
+  @@map("ga4_conversions")
+}
+
+model Ga4SyncLog {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId    String      @map("property_id") @db.Uuid
+  syncType      String      @map("sync_type") @db.VarChar(50)
+  status        String      @db.VarChar(50)
+  recordsSynced Int         @default(0) @map("records_synced")
+  errorMessage  String?     @map("error_message") @db.Text
+  syncedAt      DateTime    @default(now()) @map("synced_at") @db.Timestamptz
+  
+  property      Ga4Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("ga4_sync_logs")
+}
+
+model CmsConnection {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId     String   @map("project_id") @db.Uuid
+  cmsType       String   @map("cms_type") @db.VarChar(50) // 'WordPress', 'Webflow', 'Custom'
+  siteUrl       String?  @map("site_url") @db.VarChar(2048)
+  username      String?  @db.VarChar(255)
+  apiKey        String?  @map("api_key") @db.VarChar(1024) // Application password / key
+  defaultStatus String   @map("default_status") @db.VarChar(50) // 'draft', 'publish'
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("cms_connections")
+}
+
