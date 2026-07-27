@@ -1,4 +1,4 @@
-import { PrismaClient, RoleType, SubscriptionStatus, AuditStatus, TaskStatus, TriggerType, ActionType } from '@prisma/client';
+import { PrismaClient, RoleType, AuditStatus, TaskStatus, TriggerType, ActionType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -90,10 +90,35 @@ async function main() {
   });
   console.log(`Organization tenant created: ${org.name}`);
 
-  // 5. Create Default User (OWNER role)
+  // 5. Create Plans
+  const plansData = [
+    { name: 'Free Trial', price: 0.0, billingCycle: 'monthly', features: ['1 Project', '1 Domain'] },
+    { name: 'Starter', price: 2999.0, billingCycle: 'monthly', features: ['3 Projects', '2 Domains'] },
+    { name: 'Pro', price: 5999.0, billingCycle: 'monthly', features: ['10 Projects', '3 Domains'] },
+    { name: 'Agency', price: 12999.0, billingCycle: 'monthly', features: ['Unlimited Projects', '10 Domains'] }
+  ];
+
+  const dbPlans: Record<string, any> = {};
+  for (const p of plansData) {
+    const plan = await prisma.plan.upsert({
+      where: { name: p.name },
+      update: { price: p.price, billingCycle: p.billingCycle, features: p.features },
+      create: { name: p.name, price: p.price, billingCycle: p.billingCycle, features: p.features }
+    });
+    dbPlans[p.name] = plan;
+    console.log(`Plan ${p.name} seeded`);
+  }
+
+  // 6. Create Default Users
   const salt = await bcrypt.genSalt();
   const passwordHash = await bcrypt.hash('password123', salt);
   
+  await prisma.user.deleteMany({
+    where: {
+      email: { in: ['agency@seoaios.com', 'admin@seoaios.com'] }
+    }
+  });
+
   const user = await prisma.user.create({
     data: {
       organizationId: org.id,
@@ -101,24 +126,89 @@ async function main() {
       passwordHash,
       firstName: 'Anshul',
       lastName: 'Dev',
-      roleId: dbRoles[RoleType.OWNER].id
+      roleId: dbRoles[RoleType.OWNER].id,
+      isEmailVerified: true,
+      plan: 'pro',
+      subscriptionStatus: 'active'
     }
   });
   console.log(`Default owner user created: ${user.email}`);
 
-  // 6. Create SaaS Subscription
-  await prisma.subscription.create({
+  const adminUser = await prisma.user.create({
     data: {
       organizationId: org.id,
-      status: SubscriptionStatus.ACTIVE,
-      stripePriceId: 'price_agency_pro_monthly',
-      stripeSubscriptionId: 'sub_mock_123xyz',
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      email: 'admin@seoaios.com',
+      passwordHash,
+      firstName: 'System',
+      lastName: 'Admin',
+      roleId: dbRoles[RoleType.ADMIN].id,
+      isEmailVerified: true,
+      plan: 'agency',
+      subscriptionStatus: 'active'
+    }
+  });
+  console.log(`Default admin user created: ${adminUser.email}`);
+
+  // 7. Create SaaS Subscription & Payments
+  const ownerSubscription = await prisma.subscription.create({
+    data: {
+      userId: user.id,
+      planId: dbPlans['Pro'].id,
+      status: 'active',
+      startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Renews in 30 days
+      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      amount: 5999.0,
+      currency: 'INR',
+      paymentStatus: 'paid'
     }
   });
 
-  // 7. Create Mock Invoices
+  const adminSubscription = await prisma.subscription.create({
+    data: {
+      userId: adminUser.id,
+      planId: dbPlans['Agency'].id,
+      status: 'active',
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      amount: 12999.0,
+      currency: 'INR',
+      paymentStatus: 'paid'
+    }
+  });
+
+  // Create initial payments for history ledger
+  await prisma.payment.createMany({
+    data: [
+      {
+        subscriptionId: ownerSubscription.id,
+        amount: 5999.0,
+        paidOn: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        dueDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        status: 'paid',
+        paymentMethod: 'manual'
+      },
+      {
+        subscriptionId: ownerSubscription.id,
+        amount: 5999.0,
+        paidOn: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+        dueDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+        status: 'paid',
+        paymentMethod: 'manual'
+      },
+      {
+        subscriptionId: adminSubscription.id,
+        amount: 12999.0,
+        paidOn: new Date(),
+        dueDate: new Date(),
+        status: 'paid',
+        paymentMethod: 'manual'
+      }
+    ]
+  });
+
+  // 8. Create Mock Invoices (old schema compatibility)
   await prisma.invoice.create({
     data: {
       organizationId: org.id,

@@ -17,6 +17,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { ProjectModule } from './modules/project/project.module';
 import { BacklinkModule } from './modules/backlink/backlink.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { BacklinkModule } from './modules/backlink/backlink.module';
     BillingModule,
     AnalyticsModule,
     BacklinkModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -150,6 +150,7 @@ model User {
   teamMembers    TeamMember[]
   userProjects   UserProject[]
   auditLogs      AuditLog[]
+  subscription   Subscription?
 
   @@map("users")
 }
@@ -679,5 +680,57 @@ model CmsConnection {
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("cms_connections")
+}
+
+model Plan {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String         @unique @db.VarChar(100)
+  price        Float          @default(0.0)
+  billingCycle String         @map("billing_cycle") @db.VarChar(50) // monthly / yearly
+  features     Json           @default("[]")
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime       @default(now()) @map("updated_at") @db.Timestamptz
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  planId          String    @map("plan_id") @db.Uuid
+  status          String    @default("trial") @db.VarChar(50) // active / expired / cancelled / trial
+  startDate       DateTime  @default(now()) @map("start_date") @db.Timestamptz
+  endDate         DateTime  @map("end_date") @db.Timestamptz
+  nextBillingDate DateTime? @map("next_billing_date") @db.Timestamptz
+  amount          Float     @default(0.0)
+  currency        String    @default("INR") @db.VarChar(10)
+  paymentStatus   String    @default("paid") @map("payment_status") @db.VarChar(50) // paid / due / failed
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId String    @map("subscription_id") @db.Uuid
+  amount         Float
+  paidOn         DateTime? @map("paid_on") @db.Timestamptz
+  dueDate        DateTime  @map("due_date") @db.Timestamptz
+  status         String    @default("paid") @db.VarChar(50) // paid / due / overdue / failed
+  invoiceUrl     String?   @map("invoice_url") @db.VarChar(1024)
+  paymentMethod  String    @default("manual") @map("payment_method") @db.VarChar(50)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }
 

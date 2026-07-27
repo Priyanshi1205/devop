@@ -72,7 +72,12 @@ export default function LoginPage() {
           },
           data.accessToken
         );
-        router.push('/dashboard');
+        
+        if (data.user.role === 'ADMIN') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         const errData = await res.json();
         setError(errData.message || 'Invalid email or password.');
