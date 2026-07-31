@@ -1,6 +1,5 @@
-export const runtime = 'edge';
 'use client';
-
+export const runtime = 'edge';
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Users, TrendingUp, AlertTriangle, XCircle, ArrowRight, Loader2 } from 'lucide-react';
