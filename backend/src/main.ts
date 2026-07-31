@@ -12,13 +12,18 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Enable CORS
-  app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-    credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type,Accept,Authorization',
-  });
-
+app.enableCors({
+  origin: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://seo-ai-os-frontend.onrender.com',
+    'https://devopps-a8y.pages.dev',
+  ],
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type,Accept,Authorization',
+});
+  
   // Register Global Exception Filter
   app.useGlobalFilters(new AllExceptionsFilter());
 
