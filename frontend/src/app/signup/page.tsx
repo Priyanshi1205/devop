@@ -57,7 +57,7 @@ export default function SignupPage() {
     const lastName = names.slice(1).join(' ') || 'User';
 
     try {
-      const res = await fetch('/api/auth/register', {
+     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
