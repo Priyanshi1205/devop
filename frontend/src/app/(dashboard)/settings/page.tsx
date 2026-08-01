@@ -84,7 +84,7 @@ export default function SettingsPage() {
         const projectsList = useStore.getState().projects;
         const promises = projectsList.map(async (p) => {
           try {
-            const res = await fetch(`/api/projects/${p.id}/websites`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${p.id}/websites`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -132,7 +132,7 @@ export default function SettingsPage() {
         setNewProjName('');
         setNewProjDesc('');
       } else {
-        const res = await fetch('/api/projects', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export default function SettingsPage() {
         const targetProjObj = projects.find(p => p.id === targetProjectId);
         setMoveSuccess(`Moved "${domain}" to project "${targetProjObj?.name || 'Unknown'}" (Offline).`);
       } else {
-        const res = await fetch(`/api/websites/${websiteId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export default function SettingsPage() {
           setAllWebsites(prev => prev.map(w => w.id === websiteId ? updatedWeb : w));
           
           if (currentProject) {
-            const webRes = await fetch(`/api/projects/${currentProject.id}/websites`, {
+            const webRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/websites`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             if (webRes.ok) {

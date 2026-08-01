@@ -102,7 +102,7 @@ export default function SeoAuditPage() {
     stopPolling();
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/websites/${websiteId}/audits`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/audits`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -135,7 +135,7 @@ export default function SeoAuditPage() {
     setLoadingAudits(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/audits`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/audits`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -172,7 +172,7 @@ export default function SeoAuditPage() {
   const fetchPages = async (auditId: string) => {
     setLoadingPages(true);
     try {
-      const res = await fetch(`/api/audits/${auditId}/pages`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audits/${auditId}/pages`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -193,7 +193,7 @@ export default function SeoAuditPage() {
     setErrorMsg(null);
     
     try {
-      const res = await fetch('/api/audits', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audits`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -370,7 +370,7 @@ export default function SeoAuditPage() {
     setExporting(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/audits/${activeAudit.id}/export?format=${format}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audits/${activeAudit.id}/export?format=${format}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

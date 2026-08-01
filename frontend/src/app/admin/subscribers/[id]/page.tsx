@@ -52,7 +52,7 @@ export default function SubscriberDetail() {
   const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/subscribers/${userId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -79,7 +79,7 @@ export default function SubscriberDetail() {
   const handleChangePlan = async () => {
     setUpdatingPlan(true);
     try {
-      const res = await fetch(`/api/admin/subscribers/${userId}/plan`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers/${userId}/plan`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ export default function SubscriberDetail() {
     const payload = extendUnit === 'months' ? { months: count } : { days: count };
 
     try {
-      const res = await fetch(`/api/admin/subscribers/${userId}/extend`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers/${userId}/extend`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export default function SubscriberDetail() {
     if (!window.confirm('Are you sure you want to suspend/cancel this subscription?')) return;
     setCancelling(true);
     try {
-      const res = await fetch(`/api/admin/subscribers/${userId}/cancel`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers/${userId}/cancel`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`
@@ -156,7 +156,7 @@ export default function SubscriberDetail() {
     
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/subscribers/${userId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers/${userId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`
@@ -175,7 +175,7 @@ export default function SubscriberDetail() {
 
   const handleMarkPaymentPaid = async (paymentId: string) => {
     try {
-      const res = await fetch(`/api/admin/payments/${paymentId}/mark-paid`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/payments/${paymentId}/mark-paid`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`

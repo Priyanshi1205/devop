@@ -128,7 +128,7 @@ export default function KeywordResearchPage() {
       setLoading(true);
       
       // 1. Fetch Keywords
-      const kwRes = await fetch(`/api/websites/${currentWebsite.id}/keywords`, {
+      const kwRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (kwRes.ok) {
@@ -137,7 +137,7 @@ export default function KeywordResearchPage() {
       }
 
       // 2. Fetch Clusters
-      const clRes = await fetch(`/api/websites/${currentWebsite.id}/keywords/clusters`, {
+      const clRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords/clusters`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (clRes.ok) {
@@ -168,7 +168,7 @@ export default function KeywordResearchPage() {
 
     try {
       setRankTrackerLoading(true);
-      const res = await fetch(`/api/websites/${currentWebsite.id}/keywords/rank-tracker`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords/rank-tracker`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -203,7 +203,7 @@ export default function KeywordResearchPage() {
 
     try {
       setSyncingGsc(true);
-      const res = await fetch(`/api/websites/${currentWebsite.id}/sync/gsc`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/sync/gsc`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -255,7 +255,7 @@ export default function KeywordResearchPage() {
     }
 
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/keywords/rank-tracker/export`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords/rank-tracker/export`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -331,7 +331,7 @@ export default function KeywordResearchPage() {
         return;
       }
 
-      const res = await fetch(`/api/websites/${currentWebsite.id}/keywords/discover`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords/discover`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -382,7 +382,7 @@ export default function KeywordResearchPage() {
         return;
       }
 
-      const res = await fetch(`/api/websites/${currentWebsite.id}/keywords/ai-suggest`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords/ai-suggest`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -449,7 +449,7 @@ export default function KeywordResearchPage() {
         return;
       }
 
-      const res = await fetch(`/api/websites/${currentWebsite.id}/keywords/discover`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords/discover`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -499,7 +499,7 @@ export default function KeywordResearchPage() {
         return;
       }
 
-      const res = await fetch('/api/keywords', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/keywords`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -533,7 +533,7 @@ export default function KeywordResearchPage() {
       return;
     }
     try {
-      const res = await fetch(`/api/keywords/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/keywords/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

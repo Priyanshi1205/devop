@@ -189,7 +189,7 @@ export default function AnalyticsPage() {
     if (!currentWebsite?.id) return;
     setLoadingWizardProperties(true);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/google/ga4-properties`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/google/ga4-properties`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -208,7 +208,7 @@ export default function AnalyticsPage() {
   const fetchProperties = async () => {
     setLoadingProperties(true);
     try {
-      const res = await fetch('/api/analytics/properties', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/properties`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -228,7 +228,7 @@ export default function AnalyticsPage() {
     setLoadingData(true);
     setErrorMessage(null);
     try {
-      const res = await fetch(`/api/analytics/seo-performance?websiteId=${currentWebsite?.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/seo-performance?websiteId=${currentWebsite?.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -253,7 +253,7 @@ export default function AnalyticsPage() {
     // Fetch Overview
     setLoadingOverview(true);
     setOverviewError(null);
-    fetch(`/api/analytics/overview/${currentWebsite.id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/overview/${currentWebsite.id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(async res => {
@@ -273,7 +273,7 @@ export default function AnalyticsPage() {
     // Fetch Traffic
     setLoadingTraffic(true);
     setTrafficError(null);
-    fetch(`/api/analytics/traffic/${currentWebsite.id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/traffic/${currentWebsite.id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(async res => {
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
     // Fetch Landing Pages
     setLoadingLandingPages(true);
     setLandingPagesError(null);
-    fetch(`/api/analytics/landing-pages/${currentWebsite.id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/landing-pages/${currentWebsite.id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(async res => {
@@ -313,7 +313,7 @@ export default function AnalyticsPage() {
     // Fetch Conversions
     setLoadingConversions(true);
     setConversionsError(null);
-    fetch(`/api/analytics/conversions/${currentWebsite.id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/conversions/${currentWebsite.id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(async res => {
@@ -336,7 +336,7 @@ export default function AnalyticsPage() {
     setSyncing(true);
     try {
       // 1. Sync GSC
-      await fetch(`/api/websites/${currentWebsite.id}/sync/gsc`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/sync/gsc`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -344,7 +344,7 @@ export default function AnalyticsPage() {
       // 2. Sync GA4 (if property mapping exists)
       const mappedProp = properties.find(p => p.websiteId === currentWebsite.id);
       if (mappedProp) {
-        await fetch('/api/analytics/sync', {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/sync`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -376,7 +376,7 @@ export default function AnalyticsPage() {
     };
 
     try {
-      const res = await fetch('/api/analytics/connect', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

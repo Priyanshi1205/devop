@@ -50,7 +50,7 @@ export default function ReportsPage() {
     }
     try {
       setLoading(true);
-      const res = await fetch(`/api/projects/${currentProject.id}/reports`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/reports`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -81,7 +81,7 @@ export default function ReportsPage() {
     setCompiling(true);
 
     try {
-      const res = await fetch('/api/reports', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export default function ReportsPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/reports/${id}/download`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports/${id}/download`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -139,7 +139,7 @@ export default function ReportsPage() {
     if (!confirm('Are you sure you want to delete this report?')) return;
 
     try {
-      const res = await fetch(`/api/reports/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

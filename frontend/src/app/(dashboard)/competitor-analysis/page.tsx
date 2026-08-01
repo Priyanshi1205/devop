@@ -92,10 +92,10 @@ export default function CompetitorAnalysisPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const compRes = await fetch(`/api/projects/${currentProject.id}/competitors`, {
+      const compRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/competitors`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const gapRes = await fetch(`/api/projects/${currentProject.id}/competitors/gap`, {
+      const gapRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/competitors/gap`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -134,7 +134,7 @@ export default function CompetitorAnalysisPage() {
 
     setInsightsLoading(true);
     try {
-      const res = await fetch(`/api/projects/${currentProject.id}/competitors/insights`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/competitors/insights`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -202,7 +202,7 @@ export default function CompetitorAnalysisPage() {
 
     setDiscovering(true);
     try {
-      const res = await fetch(`/api/projects/${currentProject.id}/competitors/discover`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/competitors/discover`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -245,7 +245,7 @@ export default function CompetitorAnalysisPage() {
     }
 
     try {
-      const res = await fetch('/api/competitors', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/competitors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ export default function CompetitorAnalysisPage() {
     }
 
     try {
-      const res = await fetch(`/api/competitors/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/competitors/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

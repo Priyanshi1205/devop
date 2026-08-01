@@ -83,7 +83,7 @@ export default function GeoOptimizationPage() {
         return;
       }
       try {
-        const res = await fetch(`/api/websites/${currentWebsite.id}/keywords`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -108,7 +108,7 @@ export default function GeoOptimizationPage() {
     if (!kwId || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/keywords/${kwId}/geo-scores`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/keywords/${kwId}/geo-scores`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -135,7 +135,7 @@ export default function GeoOptimizationPage() {
     if (!currentWebsite?.projectId || !token) return;
     setLoadingFiles(true);
     try {
-      const res = await fetch(`/api/projects/${currentWebsite.projectId}/geo-files`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentWebsite.projectId}/geo-files`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -162,7 +162,7 @@ export default function GeoOptimizationPage() {
     if (!selectedKeywordId || !token) return;
     setEvaluating(true);
     try {
-      const res = await fetch('/api/geo-scores', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/geo-scores`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ export default function GeoOptimizationPage() {
     if (!currentWebsite?.projectId || !token) return;
     setGeneratingFiles(true);
     try {
-      const res = await fetch(`/api/projects/${currentWebsite.projectId}/geo-files/generate`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentWebsite.projectId}/geo-files/generate`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

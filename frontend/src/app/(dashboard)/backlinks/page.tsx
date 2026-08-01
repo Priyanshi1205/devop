@@ -115,7 +115,7 @@ export default function BacklinksPage() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch(`/api/websites/${websiteId}/backlinks`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/backlinks`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -137,7 +137,7 @@ export default function BacklinksPage() {
     if (!currentWebsite?.id) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/backlinks`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/backlinks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -173,7 +173,7 @@ export default function BacklinksPage() {
   const handleDeleteBacklink = async (id: string) => {
     if (!window.confirm('Are you sure you want to stop tracking / disavow this link?')) return;
     try {
-      const res = await fetch(`/api/backlinks/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/backlinks/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

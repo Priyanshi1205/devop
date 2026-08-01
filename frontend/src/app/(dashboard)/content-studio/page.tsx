@@ -240,7 +240,7 @@ export default function ContentStudioPage() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch(`/api/projects/${projId}/content`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${projId}/content`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -259,7 +259,7 @@ export default function ContentStudioPage() {
   const fetchSuggestions = async (projId: string) => {
     setLoadingSuggestions(true);
     try {
-      const res = await fetch(`/api/projects/${projId}/content/suggestions`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${projId}/content/suggestions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -276,7 +276,7 @@ export default function ContentStudioPage() {
   // Fetch CMS Connections
   const fetchCmsConnections = async (projId: string) => {
     try {
-      const res = await fetch(`/api/projects/${projId}/cms-connections`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${projId}/cms-connections`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -297,7 +297,7 @@ export default function ContentStudioPage() {
     if (!selectedProjectId) return;
     setAddingConnection(true);
     try {
-      const res = await fetch(`/api/projects/${selectedProjectId}/cms-connections`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${selectedProjectId}/cms-connections`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -329,7 +329,7 @@ export default function ContentStudioPage() {
   const handleDeleteConnection = async (id: string) => {
     if (!window.confirm('Delete this CMS connection?')) return;
     try {
-      const res = await fetch(`/api/cms-connections/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cms-connections/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -347,7 +347,7 @@ export default function ContentStudioPage() {
     setPublishing(true);
     setPublishResult(null);
     try {
-      const res = await fetch(`/api/content/${activeArticle.id}/publish`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/${activeArticle.id}/publish`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -393,7 +393,7 @@ export default function ContentStudioPage() {
     };
 
     try {
-      const res = await fetch(`/api/projects/${selectedProjectId}/content/generate`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${selectedProjectId}/content/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -438,7 +438,7 @@ export default function ContentStudioPage() {
     };
 
     try {
-      const res = await fetch(`/api/content/${activeArticle.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/${activeArticle.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -466,7 +466,7 @@ export default function ContentStudioPage() {
   const handleDeleteArticle = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this content asset?')) return;
     try {
-      const res = await fetch(`/api/content/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -494,7 +494,7 @@ export default function ContentStudioPage() {
     };
 
     try {
-      const res = await fetch(`/api/content/${activeArticle.id}/regenerate-section`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/${activeArticle.id}/regenerate-section`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

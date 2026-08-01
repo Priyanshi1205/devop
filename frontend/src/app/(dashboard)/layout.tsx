@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setCreatingProject(true);
     try {
       const activeToken = useStore.getState().token;
-      const res = await fetch('/api/projects', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             return;
           }
           console.log('[Dashboard Layout Sync] No active token. Performing auto-login...');
-          const authRes = await fetch('/api/auth/login', {
+          const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: 'agency@seoaios.com', password: 'password123' })
@@ -188,7 +188,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         
         console.log('[Dashboard Layout Sync] Fetching /api/organization...');
         const orgResStart = performance.now();
-        const orgRes = await fetch('/api/organization', {
+        const orgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organization`, {
           headers: { 'Authorization': `Bearer ${activeToken}` }
         });
         const orgResEnd = performance.now();
@@ -205,7 +205,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             
             console.log(`[Dashboard Layout Sync] Fetching websites for project ${activeProj.id}...`);
             const webResStart = performance.now();
-            const webRes = await fetch(`/api/projects/${activeProj.id}/websites`, {
+            const webRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${activeProj.id}/websites`, {
               headers: { 'Authorization': `Bearer ${activeToken}` }
             });
             const webResEnd = performance.now();
@@ -242,7 +242,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const fetchProjectWebsites = async () => {
       try {
-        const webRes = await fetch(`/api/projects/${currentProject.id}/websites`, {
+        const webRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/websites`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (webRes.ok) {
@@ -263,7 +263,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!token || token === 'mock-jwt-token-xyz') return;
     const fetchSub = async () => {
       try {
-        const res = await fetch('/api/billing/subscription', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing/subscription`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {

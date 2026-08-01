@@ -29,7 +29,7 @@ export default function AdminPayments() {
       const params = new URLSearchParams();
       if (statusFilter) params.append('status', statusFilter);
 
-      const res = await fetch(`/api/admin/payments?${params.toString()}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/payments?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -53,7 +53,7 @@ export default function AdminPayments() {
 
   const handleMarkPaid = async (paymentId: string) => {
     try {
-      const res = await fetch(`/api/admin/payments/${paymentId}/mark-paid`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/payments/${paymentId}/mark-paid`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`

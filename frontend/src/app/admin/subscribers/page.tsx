@@ -56,7 +56,7 @@ export default function AdminSubscribers() {
       if (planFilter) params.append('plan', planFilter);
       if (statusFilter) params.append('status', statusFilter);
 
-      const res = await fetch(`/api/admin/subscribers?${params.toString()}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -86,7 +86,7 @@ export default function AdminSubscribers() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/admin/subscribers', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/subscribers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

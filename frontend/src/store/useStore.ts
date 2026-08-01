@@ -129,7 +129,8 @@ if (typeof window !== 'undefined') {
   const originalFetch = window.fetch;
   window.fetch = async function (url, options = {}) {
     const urlString = url.toString();
-    const isApiRequest = urlString.includes('/api/') && !urlString.includes('/api/auth/');
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+    const isApiRequest = API_BASE_URL !== '' && urlString.startsWith(API_BASE_URL) && !urlString.includes('/auth/');
 
     if (isApiRequest) {
       options.headers = options.headers || {};
@@ -163,7 +164,7 @@ if (typeof window !== 'undefined') {
     if (response.status === 401 && isApiRequest) {
       console.warn('Access token unauthorized or expired (401). Attempting token rotation...');
       try {
-        const refreshRes = await originalFetch('/api/auth/refresh', {
+        const refreshRes = await originalFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

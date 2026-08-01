@@ -69,7 +69,7 @@ export default function DashboardLandingPage() {
     setLoading(true);
     try {
       const websiteParam = currentWebsite?.id ? `?websiteId=${currentWebsite.id}` : '';
-      const res = await fetch(`/api/projects/${currentProject?.id}/dashboard/stats${websiteParam}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject?.id}/dashboard/stats${websiteParam}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -157,7 +157,7 @@ export default function LocalSeoPage() {
   const fetchGoogleEmail = async (websiteId: string) => {
     if (!token || token === 'mock-jwt-token-xyz') return;
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/gsc-properties`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/gsc-properties`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -177,7 +177,7 @@ export default function LocalSeoPage() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch(`/api/websites/${websiteId}/analytics/gmb`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/analytics/gmb`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -209,7 +209,7 @@ export default function LocalSeoPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/analytics/gmb/sync`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/analytics/gmb/sync`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -233,7 +233,7 @@ export default function LocalSeoPage() {
   const handleConnectGoogle = async () => {
     if (!currentWebsite?.id) return;
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/google/oauth/url?redirectPath=/local-seo`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/google/oauth/url?redirectPath=/local-seo`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -380,7 +380,7 @@ export default function LocalSeoPage() {
     setAiContentLoading(true);
     setAiContentData(null);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/analytics/gmb/ai-content`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/analytics/gmb/ai-content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -417,7 +417,7 @@ export default function LocalSeoPage() {
     if (!selectedProfile || !currentWebsite?.id) return;
     setRegeneratingReviewId(review.id);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/analytics/gmb/reviews/reply-draft`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/analytics/gmb/reviews/reply-draft`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -457,7 +457,7 @@ export default function LocalSeoPage() {
     if (!selectedProfile || !currentWebsite?.id) return;
     setPostingReviewId(reviewId);
     try {
-      const res = await fetch(`/api/websites/${currentWebsite.id}/analytics/gmb/reviews/reply`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/analytics/gmb/reviews/reply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

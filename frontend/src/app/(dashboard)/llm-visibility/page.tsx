@@ -88,7 +88,7 @@ export default function LlmVisibilityPage() {
         return;
       }
       try {
-        const res = await fetch(`/api/websites/${currentWebsite.id}/keywords`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${currentWebsite.id}/keywords`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -113,7 +113,7 @@ export default function LlmVisibilityPage() {
     if (!kwId || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/keywords/${kwId}/llm-visibility`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/keywords/${kwId}/llm-visibility`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -171,7 +171,7 @@ export default function LlmVisibilityPage() {
     if (!selectedKeywordId || !token) return;
     setAuditing(true);
     try {
-      const res = await fetch(`/api/keywords/${selectedKeywordId}/llm-visibility/trigger`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/keywords/${selectedKeywordId}/llm-visibility/trigger`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

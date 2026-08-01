@@ -93,7 +93,7 @@ export default function ChoosePlanPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/billing/checkout', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/billing/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

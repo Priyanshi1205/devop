@@ -115,7 +115,7 @@ export default function WebsitesPage() {
 
   useEffect(() => {
     if (token && token !== 'mock-jwt-token-xyz') {
-      fetch('/api/config/google', {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/config/google`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       .then(async res => {
@@ -153,7 +153,7 @@ export default function WebsitesPage() {
 
     setSavingGtm(true);
     try {
-      const res = await fetch(`/api/websites/${selectedWebId}/google/gtm/connect`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${selectedWebId}/google/gtm/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function WebsitesPage() {
 
         // Immediately fetch detail metrics
         setFetchingGtmDetails(prev => ({ ...prev, [selectedWebId]: true }));
-        const detailsRes = await fetch(`/api/websites/${selectedWebId}/google/gtm/details`, {
+        const detailsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${selectedWebId}/google/gtm/details`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (detailsRes.ok) {
@@ -198,7 +198,7 @@ export default function WebsitesPage() {
     if (!confirm('Are you sure you want to disconnect GTM container from this website?')) return;
     
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/gtm/disconnect`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/gtm/disconnect`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -230,7 +230,7 @@ export default function WebsitesPage() {
         if (web.googleAccessToken && web.gtmContainerId && !gtmDetails[web.id] && !fetchingGtmDetails[web.id]) {
           setFetchingGtmDetails(prev => ({ ...prev, [web.id]: true }));
           try {
-            const res = await fetch(`/api/websites/${web.id}/google/gtm/details`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${web.id}/google/gtm/details`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -311,7 +311,7 @@ export default function WebsitesPage() {
           setCurrentProject(mockProj);
           targetProjectId = mockProj.id;
         } else {
-          const res = await fetch('/api/projects', {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ export default function WebsitesPage() {
     }
 
     try {
-      const res = await fetch('/api/websites', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -416,7 +416,7 @@ export default function WebsitesPage() {
     }
 
     try {
-      const res = await fetch(`/api/websites/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -438,7 +438,7 @@ export default function WebsitesPage() {
   // Google Search Console OAuth Connect
   const handleConnectGsc = async (websiteId: string) => {
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/oauth/url`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/oauth/url`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -465,7 +465,7 @@ export default function WebsitesPage() {
     setSyncStatus(prev => ({ ...prev, [websiteId]: 'Syncing GSC data...' }));
 
     try {
-      const res = await fetch(`/api/websites/${websiteId}/sync/gsc`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/sync/gsc`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -481,7 +481,7 @@ export default function WebsitesPage() {
         
         // Refresh local store websites values (to reload connected statuses)
         if (currentProject) {
-          const webRes = await fetch(`/api/projects/${currentProject.id}/websites`, {
+          const webRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/websites`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (webRes.ok) {
@@ -506,7 +506,7 @@ export default function WebsitesPage() {
     setSyncStatus(prev => ({ ...prev, [websiteId]: 'Syncing Console + GA4 + GBP...' }));
 
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/sync-all`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/sync-all`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -520,7 +520,7 @@ export default function WebsitesPage() {
         }));
         
         if (currentProject) {
-          const webRes = await fetch(`/api/projects/${currentProject.id}/websites`, {
+          const webRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/websites`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (webRes.ok) {
@@ -544,7 +544,7 @@ export default function WebsitesPage() {
   const refreshWebsites = async () => {
     if (currentProject && token && token !== 'mock-jwt-token-xyz') {
       try {
-        const webRes = await fetch(`/api/projects/${currentProject.id}/websites`, {
+        const webRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${currentProject.id}/websites`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (webRes.ok) {
@@ -567,7 +567,7 @@ export default function WebsitesPage() {
     setSelectedProperty('');
     
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/gsc-properties`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/gsc-properties`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -605,7 +605,7 @@ export default function WebsitesPage() {
     if (!selectedWebId || !selectedProperty) return;
     setSavingProperty(true);
     try {
-      const res = await fetch(`/api/websites/${selectedWebId}/google/gsc-property`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${selectedWebId}/google/gsc-property`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -632,7 +632,7 @@ export default function WebsitesPage() {
   const handleDisconnectGsc = async (websiteId: string) => {
     if (!window.confirm('Are you sure you want to disconnect Google Search Console? This will remove saved credentials and property mapping.')) return;
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/gsc-disconnect`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/gsc-disconnect`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -659,7 +659,7 @@ export default function WebsitesPage() {
     setSelectedGa4Prop(null);
     
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/ga4-properties`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/ga4-properties`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -695,7 +695,7 @@ export default function WebsitesPage() {
     if (!selectedWebId || !selectedGa4Prop) return;
     setSavingGa4Prop(true);
     try {
-      const res = await fetch('/api/analytics/connect', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -726,7 +726,7 @@ export default function WebsitesPage() {
   const handleDisconnectGa4 = async (websiteId: string) => {
     if (!window.confirm('Are you sure you want to disconnect Google Analytics 4? This will remove the mapped property association.')) return;
     try {
-      const res = await fetch(`/api/websites/${websiteId}/google/ga4-disconnect`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/websites/${websiteId}/google/ga4-disconnect`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
